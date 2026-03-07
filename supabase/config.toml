@@ -1,0 +1,4 @@
+project_id = "vbochpkjcorabghhrfyy"
+
+[functions.parse-markov]
+verify_jwt = false
