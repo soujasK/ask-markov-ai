@@ -10,7 +10,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Play } from "lucide-react";
 import { runSimulationOverTime, type MarkovParams } from "@/lib/markovSolver";
 
 const COLORS = [
@@ -29,11 +28,11 @@ export default function SimulationPanel({ params }: { params: MarkovParams }) {
   const [simData, setSimData] = useState<Record<string, number>[] | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const runSim = (steps: number) => {
+  const runSim = async (steps: number) => {
     setLoading(true);
     setSimSteps(steps);
-    setTimeout(() => {
-      const results = runSimulationOverTime(params, steps);
+    try {
+      const results = await runSimulationOverTime(params, steps);
       const chartData = results.map(r => {
         const point: Record<string, number> = { step: r.step };
         params.states.forEach((s, i) => {
@@ -42,8 +41,11 @@ export default function SimulationPanel({ params }: { params: MarkovParams }) {
         return point;
       });
       setSimData(chartData);
+    } catch (error) {
+      console.error("Simulation error:", error);
+    } finally {
       setLoading(false);
-    }, 50);
+    }
   };
 
   return (
@@ -57,9 +59,7 @@ export default function SimulationPanel({ params }: { params: MarkovParams }) {
             size="sm"
             onClick={() => runSim(s)}
             disabled={loading}
-            className="gap-1"
           >
-            <Play className="w-3 h-3" />
             {s} steps
           </Button>
         ))}
@@ -73,7 +73,7 @@ export default function SimulationPanel({ params }: { params: MarkovParams }) {
       )}
 
       {simData && !loading && (
-        <div className="w-full h-[350px] animate-fade-in-up">
+        <div className="w-full h-[350px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={simData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 18%)" />

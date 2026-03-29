@@ -4,19 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Brain,
-  Sparkles,
-  ChevronRight,
-  Grid3X3,
-  LineChart,
-  FlaskConical,
-  Keyboard,
-  ListChecks,
-  TrendingUp,
-  Dices,
-  Download,
-} from "lucide-react";
-import {
   solveMarkov,
   validateTransitionMatrix,
   EXAMPLE_PROBLEMS,
@@ -33,7 +20,7 @@ import ManualInput from "@/components/ManualInput";
 import ExportButtons from "@/components/ExportButtons";
 import { useToast } from "@/hooks/use-toast";
 
-type ExplanationMode = "beginner" | "mathematical" | "intuitive";
+
 
 export default function Index() {
   const [question, setQuestion] = useState("");
@@ -41,7 +28,7 @@ export default function Index() {
   const [parsedParams, setParsedParams] = useState<MarkovParams | null>(null);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"nl" | "manual">("nl");
-  const [explanationMode, setExplanationMode] = useState<ExplanationMode>("beginner");
+
   const { toast } = useToast();
 
   const handleSolve = async () => {
@@ -56,7 +43,8 @@ export default function Index() {
         return;
       }
       setParsedParams(params);
-      setResult(solveMarkov(params));
+      const res = await solveMarkov(params);
+      setResult(res);
     } catch (aiError) {
       console.warn("AI parsing failed, trying local parser:", aiError);
       const params = parseQuestionLocally(question);
@@ -76,45 +64,42 @@ export default function Index() {
         return;
       }
       setParsedParams(params);
-      setResult(solveMarkov(params));
+      const res = await solveMarkov(params);
+      setResult(res);
     }
     setLoading(false);
   };
 
-  const handleManualSolve = (params: MarkovParams) => {
-    setParsedParams(params);
-    setResult(solveMarkov(params));
+  const handleManualSolve = async (params: MarkovParams) => {
+    setLoading(true);
+    try {
+      setParsedParams(params);
+      const res = await solveMarkov(params);
+      setResult(res);
+    } catch (e) {
+      toast({ title: "Solve Failed", description: "Failed to connect to backend", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleExample = (idx: number) => {
+  const handleExample = async (idx: number) => {
     const ex = EXAMPLE_PROBLEMS[idx];
     setQuestion(ex.question);
-    setParsedParams(ex.params);
-    setResult(solveMarkov(ex.params));
     setMode("nl");
+    setLoading(true);
+    try {
+      setParsedParams(ex.params);
+      const res = await solveMarkov(ex.params);
+      setResult(res);
+    } catch (e) {
+      toast({ title: "Solve Failed", description: "Failed to connect to backend", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getExplanationText = (step: { step: number; title: string; description: string }) => {
-    if (explanationMode === "beginner") {
-      const beginnerMap: Record<number, string> = {
-        1: `We first figure out what "states" or situations exist in this problem. Here we found: ${parsedParams?.states.join(", ")}. Think of these as the different boxes the system can be in.`,
-        2: "Next, we organize all the transition probabilities into a grid (matrix). Each row shows where you can go from that state, and the numbers show how likely each transition is.",
-        3: "Now we calculate what happens over multiple steps. It's like asking 'if I flip a coin multiple times following these rules, where will I likely end up?'",
-        4: step.description,
-        5: "After many, many steps, the system settles into a stable pattern. No matter where you start, you'll eventually spend a predictable fraction of time in each state.",
-      };
-      return beginnerMap[step.step] || step.description;
-    }
-    if (explanationMode === "mathematical") {
-      const mathMap: Record<number, string> = {
-        1: `State space S = {${parsedParams?.states.join(", ")}} with |S| = ${parsedParams?.states.length}`,
-        2: `Transition matrix T ∈ ℝ^(n×n) where T[i,j] = P(X_{t+1} = j | X_t = i), ∑_j T[i,j] = 1 ∀i`,
-        3: `P(n) = P(0) · T^n, computed via matrix exponentiation for n = 1, ..., ${parsedParams?.steps}`,
-        4: step.description,
-        5: `Steady state π satisfies πT = π and ∑ π_i = 1. Found via eigenvalue decomposition or power iteration.`,
-      };
-      return mathMap[step.step] || step.description;
-    }
     return step.description;
   };
 
@@ -122,38 +107,35 @@ export default function Index() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container max-w-5xl mx-auto flex items-center gap-3 py-4 px-4">
-          <div className="step-indicator">
-            <Brain className="w-4 h-4" />
-          </div>
+        <div className="container max-w-5xl mx-auto flex items-center justify-between py-4 px-4">
           <div>
-            <h1 className="text-lg font-bold gradient-text">Ask Markov AI</h1>
-            <p className="text-xs text-muted-foreground">Explainable Markov Chain Solver</p>
+            <h1 className="text-lg font-bold">Markov Analyzer</h1>
+            <p className="text-xs text-muted-foreground">Statistical State Problem Solver</p>
           </div>
         </div>
       </header>
 
       <main className="container max-w-5xl mx-auto px-4 py-8 space-y-10">
         {/* Hero Section */}
-        <section className="text-center space-y-4 py-8 animate-fade-in-up">
-          <h2 className="text-3xl md:text-4xl font-bold gradient-text leading-tight">
-            Learn Markov Chains Visually with AI
+        <section className="text-center space-y-4 py-8">
+          <h2 className="text-3xl md:text-4xl font-bold leading-tight">
+            Markov Chain Scenario Analyzer
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
-            Ask probability questions in plain English and see the Markov chain solution with
-            interactive graphs, step-by-step explanations, and Monte Carlo simulations.
+            Input probability questions and observe the Markov chain solution step-by-step
+            with interactive graphs and Monte Carlo simulations.
           </p>
         </section>
 
         {/* Example Problems */}
-        <section className="space-y-3 animate-fade-in-up">
-          <h3 className="text-sm font-semibold text-muted-foreground">Try an example:</h3>
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground">Select a scenario to analyze:</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {EXAMPLE_PROBLEMS.map((ex, i) => (
               <button
                 key={i}
                 onClick={() => handleExample(i)}
-                className="text-left p-3 rounded-lg border border-border bg-card hover:border-primary/40 hover:glow-primary transition-all text-xs leading-relaxed"
+                className="text-left p-3 rounded-lg border border-border bg-card hover:border-primary/40 transition-all text-xs leading-relaxed"
               >
                 <span className="font-semibold text-foreground block mb-1">{ex.label}</span>
                 <span className="text-muted-foreground">{ex.question.slice(0, 60)}…</span>
@@ -163,24 +145,22 @@ export default function Index() {
         </section>
 
         {/* Input Section */}
-        <Card className="animate-fade-in-up">
+        <Card>
           <CardContent className="pt-6 space-y-4">
             <div className="flex gap-2">
               <Button
                 variant={mode === "nl" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setMode("nl")}
-                className="gap-1"
               >
-                <Sparkles className="w-3.5 h-3.5" /> Natural Language
+                Text Input
               </Button>
               <Button
                 variant={mode === "manual" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setMode("manual")}
-                className="gap-1"
               >
-                <Keyboard className="w-3.5 h-3.5" /> Manual Input
+                Manual Input
               </Button>
             </div>
 
@@ -194,29 +174,18 @@ export default function Index() {
                   className="resize-none bg-muted/50 border-border focus:ring-primary/30 text-sm"
                 />
                 <div className="flex items-center gap-3">
-                  <Button onClick={handleSolve} disabled={loading || !question.trim()} className="gap-2">
+                  <Button onClick={handleSolve} disabled={loading || !question.trim()}>
                     {loading ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
                         Solving...
                       </>
                     ) : (
-                      <>
-                        Solve with AI <ChevronRight className="w-4 h-4" />
-                      </>
+                      "Analyze Scenario"
                     )}
                   </Button>
 
-                  {/* Explanation Mode */}
-                  <select
-                    value={explanationMode}
-                    onChange={e => setExplanationMode(e.target.value as ExplanationMode)}
-                    className="h-9 px-3 rounded-md border border-border bg-muted text-sm text-foreground"
-                  >
-                    <option value="beginner">🎓 Beginner</option>
-                    <option value="mathematical">📐 Mathematical</option>
-                    <option value="intuitive">💡 Intuitive</option>
-                  </select>
+
                 </div>
               </div>
             ) : (
@@ -227,31 +196,31 @@ export default function Index() {
 
         {/* Results */}
         {result && parsedParams && (
-          <section className="animate-fade-in-up space-y-6">
+          <section className="space-y-6">
             {/* Export */}
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" /> Results
+                Results
               </h3>
               <ExportButtons params={parsedParams} result={result} />
             </div>
 
             <Tabs defaultValue="steps" className="w-full">
               <TabsList className="grid w-full grid-cols-5 bg-secondary">
-                <TabsTrigger value="steps" className="gap-1 text-xs">
-                  <ListChecks className="w-3.5 h-3.5" /> Steps
+                <TabsTrigger value="steps" className="text-xs">
+                  Steps
                 </TabsTrigger>
-                <TabsTrigger value="matrix" className="gap-1 text-xs">
-                  <Grid3X3 className="w-3.5 h-3.5" /> Matrix
+                <TabsTrigger value="matrix" className="text-xs">
+                  Matrix
                 </TabsTrigger>
-                <TabsTrigger value="graph" className="gap-1 text-xs">
-                  <TrendingUp className="w-3.5 h-3.5" /> Graph
+                <TabsTrigger value="graph" className="text-xs">
+                  Graph
                 </TabsTrigger>
-                <TabsTrigger value="chart" className="gap-1 text-xs">
-                  <LineChart className="w-3.5 h-3.5" /> Chart
+                <TabsTrigger value="chart" className="text-xs">
+                  Chart
                 </TabsTrigger>
-                <TabsTrigger value="simulation" className="gap-1 text-xs">
-                  <FlaskConical className="w-3.5 h-3.5" /> Simulate
+                <TabsTrigger value="simulation" className="text-xs">
+                  Simulate
                 </TabsTrigger>
               </TabsList>
 
@@ -263,7 +232,7 @@ export default function Index() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {result.stepByStep.map(step => (
-                      <div key={step.step} className="flex gap-3 animate-fade-in-up" style={{ animationDelay: `${step.step * 80}ms` }}>
+                      <div key={step.step} className="flex gap-3">
                         <div className="step-indicator shrink-0 mt-0.5">{step.step}</div>
                         <div>
                           <h4 className="font-semibold text-sm text-foreground">{step.title}</h4>

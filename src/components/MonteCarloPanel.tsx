@@ -10,21 +10,22 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Dices } from "lucide-react";
 import { runMonteCarlo, type MarkovParams, type MonteCarloResult } from "@/lib/markovSolver";
 
 export default function MonteCarloPanel({ params }: { params: MarkovParams }) {
   const [result, setResult] = useState<MonteCarloResult | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const run = () => {
+  const run = async () => {
     setLoading(true);
-    // Use setTimeout so UI updates before heavy computation
-    setTimeout(() => {
-      const res = runMonteCarlo(params, 10000);
+    try {
+      const res = await runMonteCarlo(params, 10000);
       setResult(res);
+    } catch (error) {
+      console.error("Monte Carlo error:", error);
+    } finally {
       setLoading(false);
-    }, 50);
+    }
   };
 
   const data = result
@@ -38,8 +39,7 @@ export default function MonteCarloPanel({ params }: { params: MarkovParams }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <Button onClick={run} disabled={loading} className="gap-2">
-          <Dices className="w-4 h-4" />
+        <Button onClick={run} disabled={loading}>
           {loading ? "Running..." : "Run 10,000 Simulations"}
         </Button>
         {result && (

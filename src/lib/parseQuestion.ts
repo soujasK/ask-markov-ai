@@ -1,27 +1,20 @@
-import { supabase } from "@/integrations/supabase/client";
 import type { MarkovParams } from "./markovSolver";
+import { api } from "./api";
 
 export async function parseQuestionWithAI(question: string): Promise<MarkovParams> {
-  console.log("Calling parse-markov edge function...");
-  const { data, error } = await supabase.functions.invoke("parse-markov", {
-    body: { question },
-  });
-
-  console.log("Edge function response:", { data, error });
-
-  if (error) {
-    const msg = error.message || (typeof error === "object" ? JSON.stringify(error) : String(error));
-    console.error("Edge function error:", msg);
-    throw new Error(msg || "Failed to parse question");
-  }
-
-  if (!data) {
-    throw new Error("No data returned from AI parser");
-  }
-
-  if (data.error) {
-    throw new Error(data.error);
-  }
+  console.log("Calling local parse-markov endpoint...");
+  
+  try {
+    const data = await api.post("/parse-markov", { question });
+    console.log("Backend response:", data);
+    
+    if (!data) {
+      throw new Error("No data returned from AI parser");
+    }
+    
+    if (data.error) {
+      throw new Error(data.error);
+    }
 
   // Validate the response structure
   const { states, transition_matrix, initial_state, steps } = data;
@@ -31,6 +24,10 @@ export async function parseQuestionWithAI(question: string): Promise<MarkovParam
   }
 
   return { states, transition_matrix, initial_state, steps };
+  } catch (error) {
+    console.error("Error in parseQuestionWithAI:", error);
+    throw error;
+  }
 }
 
 /**

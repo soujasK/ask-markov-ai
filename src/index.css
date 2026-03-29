@@ -1,53 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 220 20% 6%;
-    --foreground: 210 20% 92%;
+    --background: 210 20% 98%;
+    --foreground: 220 20% 10%;
 
-    --card: 220 18% 10%;
-    --card-foreground: 210 20% 92%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
 
-    --popover: 220 18% 10%;
-    --popover-foreground: 210 20% 92%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
 
-    --primary: 162 72% 46%;
-    --primary-foreground: 220 20% 6%;
+    --primary: 220 70% 50%;
+    --primary-foreground: 210 20% 98%;
 
-    --secondary: 220 16% 16%;
-    --secondary-foreground: 210 20% 80%;
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 220 20% 20%;
 
-    --muted: 220 14% 14%;
-    --muted-foreground: 215 12% 50%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 10% 40%;
 
-    --accent: 270 60% 60%;
-    --accent-foreground: 210 20% 95%;
+    --accent: 220 14% 92%;
+    --accent-foreground: 220 20% 20%;
 
-    --destructive: 0 72% 55%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 210 20% 98%;
 
-    --border: 220 14% 18%;
-    --input: 220 14% 18%;
-    --ring: 162 72% 46%;
+    --border: 220 14% 88%;
+    --input: 220 14% 88%;
+    --ring: 220 70% 50%;
 
-    --radius: 0.75rem;
-
-    --glow-primary: 162 72% 46%;
-    --glow-accent: 270 60% 60%;
-    --surface-elevated: 220 16% 13%;
-
-    --sidebar-background: 220 18% 8%;
-    --sidebar-foreground: 210 20% 80%;
-    --sidebar-primary: 162 72% 46%;
-    --sidebar-primary-foreground: 220 20% 6%;
-    --sidebar-accent: 220 14% 14%;
-    --sidebar-accent-foreground: 210 20% 80%;
-    --sidebar-border: 220 14% 18%;
-    --sidebar-ring: 162 72% 46%;
+    --radius: 0.3rem;
   }
 }
 
@@ -57,34 +42,12 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 }
 
 @layer utilities {
-  .font-mono {
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .glow-primary {
-    box-shadow: 0 0 20px hsl(var(--glow-primary) / 0.15),
-                0 0 60px hsl(var(--glow-primary) / 0.05);
-  }
-
-  .glow-accent {
-    box-shadow: 0 0 20px hsl(var(--glow-accent) / 0.15),
-                0 0 60px hsl(var(--glow-accent) / 0.05);
-  }
-
-  .gradient-text {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
-  }
-
-  .surface-elevated {
-    background-color: hsl(var(--surface-elevated));
-  }
-
   .matrix-cell {
     @apply font-mono text-sm px-3 py-2 rounded-md border border-border bg-muted/50 text-center min-w-[60px];
   }
@@ -101,7 +64,13 @@
 }
 
 .react-flow__edge-path {
-  stroke-width: 2;
+  stroke: hsl(220, 70%, 50%) !important;
+  stroke-width: 2 !important;
+  stroke-opacity: 0.8 !important;
+}
+
+.react-flow__arrowhead {
+  fill: hsl(220, 70%, 50%) !important;
 }
 
 .react-flow__background {
